@@ -1,0 +1,45 @@
+name: pos_terminal
+description: "Digitex POS Sales Terminal — optimized for all processors including low-end hardware."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_windows: ^0.4.0
+  shared_preferences: ^2.5.4
+  logging: ^1.3.0
+  ffi: ^2.1.0
+  window_manager: ^0.5.1
+  webview_flutter: ^4.13.1
+  webview_flutter_wkwebview: ^3.23.8
+  path_provider: ^2.1.5
+  msix: ^3.16.13
+
+dependency_overrides:
+  webview_windows:
+    path: packages/webview_windows
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+msix_config:
+  display_name: Digitex POS Terminal
+  publisher_display_name: InSoft LLC
+  identity_name: insoft.llc.digitexposterminal
+  msix_version: 1.0.0.0
+  logo_path: assets/logo.png
+  store: false
+  architecture: x64
+  os_min_version: 10.0.18362.0
+  capabilities: internetClient, privateNetworkClientServer
+  languages: en-us, ru-ru, uz-uz
