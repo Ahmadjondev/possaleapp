@@ -287,6 +287,7 @@ class ReceiptBuilder {
       align: ui.TextAlign.center,
     );
     b.emptyLine();
+    b.emptyLine();
     b.feed(3);
     b.cut();
 
