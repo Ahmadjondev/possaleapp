@@ -222,9 +222,9 @@ class TextBitmapRenderer {
     );
 
     canvas.drawParagraph(leftPara, ui.Offset.zero);
-    // Draw right text anchored to the right edge
-    final rightX = totalWidth - rightWidth;
-    canvas.drawParagraph(rightPara, ui.Offset(rightX, 0));
+    // Right paragraph already occupies full width with right-alignment,
+    // so draw it at zero offset — no extra shift needed.
+    canvas.drawParagraph(rightPara, ui.Offset.zero);
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(pxW, pxH);

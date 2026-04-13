@@ -25,7 +25,7 @@ void main() async {
 
   final windowOptions = WindowOptions(
     minimumSize: const Size(1024, 600),
-    fullScreen: true,
+    
     center: true,
     title: 'Digitex POS Terminal',
     backgroundColor: Colors.transparent,
