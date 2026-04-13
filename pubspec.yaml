@@ -10,24 +10,48 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_windows: ^0.4.0
-  shared_preferences: ^2.5.4
-  logging: ^1.3.0
-  ffi: ^2.1.0
-  window_manager: ^0.5.1
-  webview_flutter: ^4.13.1
-  webview_flutter_wkwebview: ^3.23.8
-  path_provider: ^2.1.5
-  msix: ^3.16.13
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
-dependency_overrides:
-  webview_windows:
-    path: packages/webview_windows
+  # State management
+  flutter_bloc: ^9.1.0
+  equatable: ^2.0.7
+
+  # Networking
+  dio: ^5.8.0+1
+
+  # Dependency injection
+  get_it: ^9.2.1
+
+  # Routing
+  go_router: ^15.1.2
+
+  # Storage
+  shared_preferences: ^2.5.4
+  flutter_secure_storage: ^9.2.4
+
+  # Serialization
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+
+  # Desktop / Platform
+  window_manager: ^0.5.1
+  path_provider: ^2.1.5
+  ffi: ^2.1.0
+  logging: ^1.3.0
+
+  # Packaging
+  msix: ^3.16.13
+  pretty_dio_logger: ^1.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  build_runner: ^2.4.15
+  freezed: ^3.0.6
+  json_serializable: ^6.9.5
 
 flutter:
   uses-material-design: true
