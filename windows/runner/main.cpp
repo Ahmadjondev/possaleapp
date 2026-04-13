@@ -2,6 +2,9 @@
 #include <flutter/flutter_view_controller.h>
 #include <windows.h>
 
+#include <cstdlib>
+#include <string>
+
 #include "flutter_window.h"
 #include "utils.h"
 
@@ -11,6 +14,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // new console when running with a debugger.
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
     CreateAndAttachConsole();
+  }
+
+  // ---- Low-end GPU compatibility ----
+  // Disable Impeller and use Skia instead.  Impeller requires DirectX 11+
+  // via ANGLE, which is not available on Intel HD Graphics 3000 (Sandy Bridge,
+  // DX 10.1 only).  Skia uses OpenGL 3.1 which HD 3000 does support.
+  _putenv_s("FLUTTER_ENGINE_SWITCHES", "1");
+  _putenv_s("FLUTTER_ENGINE_SWITCH_1", "no-enable-impeller");
+
+  // If even OpenGL fails (broken driver), the user can launch the app with
+  // --software flag to force CPU-based software rendering.
+  std::wstring cmd(command_line);
+  if (cmd.find(L"--software") != std::wstring::npos) {
+    _putenv_s("FLUTTER_ENGINE_SWITCHES", "2");
+    _putenv_s("FLUTTER_ENGINE_SWITCH_2", "enable-software-rendering");
   }
 
   // Initialize COM, so that it is available for use in the library and/or
