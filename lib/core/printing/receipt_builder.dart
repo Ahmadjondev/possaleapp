@@ -216,8 +216,8 @@ class ReceiptBuilder {
     bSep();
 
     // ── Totals ──
-    await bRow('Умумий нарх:', _fmtMoney(r.subtotalUzs));
     if (r.discountUzs > 0) {
+      await bRow('Умумий нарх:', _fmtMoney(r.subtotalUzs));
       await bRow('Чегирма:', '-${_fmtMoney(r.discountUzs)}');
     }
     await bRow('ЖАМИ:', _fmtMoney(r.totalUzs), fontSize: totalSize, bold: true);
@@ -225,7 +225,7 @@ class ReceiptBuilder {
 
     // ── Payments ──
     for (final p in r.payments) {
-      final label = _paymentLabels[p.method] ?? p.method;
+      final label = _paymentLabels[p.method.toLowerCase()] ?? p.method;
       await bRow(label, _fmtMoney(p.amountUzs));
     }
 
