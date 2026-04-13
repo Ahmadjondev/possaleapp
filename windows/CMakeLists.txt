@@ -29,6 +29,28 @@ set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
 set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 
+# ---- Processor compatibility + release optimizations ----
+# /arch:SSE2  — prevents AVX2/FMA3 code generation; guarantees compatibility
+#               with Sandy Bridge (Core i5-2410M, 2011) and all x86-64 CPUs.
+# /O2 /Oi /Gy — speed, enable intrinsics, function-level linking.
+# /fp:fast    — relaxed FP, measurably faster on scalar FPU-bound paths.
+# /OPT:REF/ICF— dead-code and identical-COMDAT folding at link time.
+# /MP         — parallel compilation (faster developer builds on few-core CPUs).
+if(MSVC)
+  add_compile_options(/MP)
+  add_compile_options(
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/O2>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/Oi>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/Gy>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/arch:SSE2>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/fp:fast>
+  )
+  add_link_options(
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/OPT:REF>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/OPT:ICF>
+  )
+endif()
+
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 

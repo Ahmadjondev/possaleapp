@@ -25,10 +25,11 @@ void main() async {
 
   final windowOptions = WindowOptions(
     minimumSize: const Size(1024, 600),
-    
     center: true,
     title: 'Digitex POS Terminal',
-    backgroundColor: Colors.transparent,
+    // Solid background avoids DWM alpha-compositing for the entire window,
+    // which is a measurable GPU/CPU saving on low-end hardware (HD 3000, etc.).
+    backgroundColor: Colors.white,
     titleBarStyle: TitleBarStyle.normal,
   );
 

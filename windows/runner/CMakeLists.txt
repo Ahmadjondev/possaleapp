@@ -20,6 +20,19 @@ add_executable(${BINARY_NAME} WIN32
 # that need different build settings.
 apply_standard_settings(${BINARY_NAME})
 
+# Whole-program optimization for the runner exe in Release/Profile builds.
+# Combined with /LTCG at link time this allows the linker to inline and prune
+# across translation units, reducing both binary size and startup latency —
+# important on single/dual-core machines with slow storage.
+if(MSVC)
+  target_compile_options(${BINARY_NAME} PRIVATE
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/GL>
+  )
+  target_link_options(${BINARY_NAME} PRIVATE
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:Profile>>:/LTCG>
+  )
+endif()
+
 # Add preprocessor definitions for the build version.
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION=\"${FLUTTER_VERSION}\"")
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_MAJOR=${FLUTTER_VERSION_MAJOR}")
