@@ -52,6 +52,11 @@ class ReceiptBuilder {
     const small = 22.0;
     const totalSize = 32.0;
 
+    // ── Max characters for the product name column (single-row threshold) ──
+    // 80mm ≈ 48 chars → ~20 chars fit in 42% column at 22pt
+    // 57mm ≈ 32 chars → ~13 chars fit in 42% column at 22pt
+    final nameColMaxChars = config.charsPerLine == 48 ? 20 : 13;
+
     // ── Helpers ──
     Future<void> bLine(
       String text, {
@@ -94,16 +99,36 @@ class ReceiptBuilder {
       if (bmp.height > 0) b.rasterImage(bmp.widthBytes, bmp.height, bmp.data);
     }
 
+    /// Labeled field: label at fixed left column, value wraps under itself.
+    ///
+    /// Example output:
+    /// ```
+    /// Мижоз:   Muhammadjon Abdug'aniyev
+    ///          Flutter Developer Senior
+    /// ```
+    Future<void> bField(
+      String label,
+      String value, {
+      double fontSize = small,
+      bool bold = false,
+    }) async {
+      final bmp = await TextBitmapRenderer.renderLabeledField(
+        label,
+        value,
+        paperWidthDots: dots,
+        fontSize: fontSize,
+        bold: bold,
+      );
+      if (bmp.height > 0) b.rasterImage(bmp.widthBytes, bmp.height, bmp.data);
+    }
+
     /// Bitmap-based dashed separator — no raw text bytes at all.
     void bSep() {
       final sep = TextBitmapRenderer.renderSeparator(paperWidthDots: dots);
       b.rasterImage(sep.widthBytes, sep.height, sep.data);
     }
 
-    print("Bussiness name: ${r.businessName}");
-    print("Bussiness address: ${r.businessAddress}");
-    print("Bussiness phone: ${r.businessPhone}");
-    // ── Header ──
+    // ── Header (business info) ──
     if (r.businessName != null && r.businessName!.isNotEmpty) {
       await bLine(
         r.businessName!,
@@ -131,25 +156,27 @@ class ReceiptBuilder {
     await bLine('ЧЕК', fontSize: large, bold: true, align: ui.TextAlign.center);
     b.emptyLine();
 
-    // ── Meta ──
+    // ── Meta (date, cashier, client, phone, address, receipt #) ──
+    // Each field uses bField() — the value wraps to multiple lines under
+    // itself (not under the label), preventing any overlap.
     bSep();
-    await bRow('Сана:', r.date);
+    await bField('Сана:', r.date);
     if (r.cashierName != null && r.cashierName!.isNotEmpty) {
-      await bRow('Кассир:', r.cashierName!);
+      await bField('Кассир:', r.cashierName!);
     }
     if (r.customerName != null && r.customerName!.isNotEmpty) {
-      await bRow('Мижоз:', r.customerName!);
+      await bField('Мижоз:', r.customerName!);
     }
     if (r.customerPhone != null && r.customerPhone!.isNotEmpty) {
-      await bRow('Телефон:', r.customerPhone!);
+      await bField('Телефон:', r.customerPhone!);
     }
     if (r.customerAddress != null && r.customerAddress!.isNotEmpty) {
-      await bRow('Манзил:', r.customerAddress!);
+      await bField('Манзил:', r.customerAddress!);
     }
-    await bRow('Чек:', '#${r.saleNumber}');
+    await bField('Чек:', '#${r.saleNumber}');
     bSep();
 
-    // ── Items header (4-column table) ──
+    // ── Items header ──
     await bCols([
       ColumnSpec('Товар', 0.42, bold: true),
       ColumnSpec('Сони', 0.17, align: ui.TextAlign.center, bold: true),
@@ -159,15 +186,32 @@ class ReceiptBuilder {
     bSep();
 
     // ── Items ──
+    // Short names → single 4-column row.
+    // Long names  → 2-row format: full-width name, then qty|price|total.
     for (final item in r.items) {
       final unitLabel = _unitLabels[item.unitType] ?? item.unitType;
       final qty = '${_fmtQty(item.quantity)} $unitLabel';
-      await bCols([
-        ColumnSpec(item.name, 0.42, maxLines: 2),
-        ColumnSpec(qty, 0.17, align: ui.TextAlign.center),
-        ColumnSpec(_fmtNum(item.unitPrice), 0.20, align: ui.TextAlign.right),
-        ColumnSpec(_fmtNum(item.lineTotal), 0.21, align: ui.TextAlign.right),
-      ], fontSize: 22);
+      final price = _fmtNum(item.unitPrice);
+      final total = _fmtNum(item.lineTotal);
+
+      if (item.name.length <= nameColMaxChars) {
+        // ── Single row: all 4 columns ──
+        await bCols([
+          ColumnSpec(item.name, 0.42, maxLines: 1),
+          ColumnSpec(qty, 0.17, align: ui.TextAlign.center),
+          ColumnSpec(price, 0.20, align: ui.TextAlign.right),
+          ColumnSpec(total, 0.21, align: ui.TextAlign.right),
+        ], fontSize: 22);
+      } else {
+        // ── Two rows: name on its own line, then numbers ──
+        await bLine(item.name, fontSize: 22);
+        await bCols([
+          ColumnSpec('', 0.42), // empty name column
+          ColumnSpec(qty, 0.17, align: ui.TextAlign.center),
+          ColumnSpec(price, 0.20, align: ui.TextAlign.right),
+          ColumnSpec(total, 0.21, align: ui.TextAlign.right),
+        ], fontSize: 22);
+      }
     }
     bSep();
 

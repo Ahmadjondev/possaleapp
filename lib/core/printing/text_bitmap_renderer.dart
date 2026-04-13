@@ -388,6 +388,108 @@ class TextBitmapRenderer {
     return _rgbaToBitmap(byteData, pxW, pxH);
   }
 
+  /// Render a labeled field where the value wraps under itself, not the label.
+  ///
+  /// Produces output like:
+  /// ```
+  /// Мижоз:   Muhammadjon Abdug'aniyev
+  ///          Flutter Developer Senior
+  /// ```
+  /// The [label] occupies a fixed-width left column ([labelWidthFraction] of
+  /// the paper width). The [value] fills the remaining space and word-wraps
+  /// to multiple lines, all aligned under the value start position.
+  static Future<BitmapData> renderLabeledField(
+    String label,
+    String value, {
+    required int paperWidthDots,
+    double fontSize = 22,
+    bool bold = false,
+    double labelWidthFraction = 0.24,
+    int maxLines = 3,
+  }) async {
+    final totalWidth = paperWidthDots.toDouble();
+    final labelWidth = (totalWidth * labelWidthFraction).roundToDouble();
+    final valueWidth = totalWidth - labelWidth;
+
+    final labelStyle = ui.TextStyle(
+      fontSize: fontSize,
+      color: const ui.Color(0xFF000000),
+      fontWeight: ui.FontWeight.w400,
+    );
+    final valueStyle = ui.TextStyle(
+      fontSize: fontSize,
+      color: const ui.Color(0xFF000000),
+      fontWeight: bold ? ui.FontWeight.w700 : ui.FontWeight.w400,
+    );
+
+    // Label: single line, left-aligned, fixed width
+    final labelPara =
+        (ui.ParagraphBuilder(
+                ui.ParagraphStyle(
+                  textDirection: ui.TextDirection.ltr,
+                  textAlign: ui.TextAlign.left,
+                  maxLines: 1,
+                ),
+              )
+              ..pushStyle(labelStyle)
+              ..addText(label))
+            .build()
+          ..layout(ui.ParagraphConstraints(width: labelWidth));
+
+    // Value: multi-line word-wrap, left-aligned, fills remaining width
+    final valuePara =
+        (ui.ParagraphBuilder(
+                ui.ParagraphStyle(
+                  textDirection: ui.TextDirection.ltr,
+                  textAlign: ui.TextAlign.left,
+                  maxLines: maxLines,
+                  ellipsis: '…',
+                ),
+              )
+              ..pushStyle(valueStyle)
+              ..addText(value))
+            .build()
+          ..layout(ui.ParagraphConstraints(width: valueWidth));
+
+    final pxW = paperWidthDots;
+    final pxH = math.max(labelPara.height, valuePara.height).ceil();
+    if (pxH <= 0) {
+      return BitmapData(
+        widthBytes: 0,
+        pixelWidth: 0,
+        height: 0,
+        data: Uint8List(0),
+      );
+    }
+
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(
+      recorder,
+      ui.Rect.fromLTWH(0, 0, pxW.toDouble(), pxH.toDouble()),
+    );
+
+    // White background
+    canvas.drawRect(
+      ui.Rect.fromLTWH(0, 0, pxW.toDouble(), pxH.toDouble()),
+      ui.Paint()..color = const ui.Color(0xFFFFFFFF),
+    );
+
+    // Label at x=0, value at x=labelWidth — wrapped lines stay under value
+    canvas.drawParagraph(labelPara, ui.Offset.zero);
+    canvas.drawParagraph(valuePara, ui.Offset(labelWidth, 0));
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(pxW, pxH);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    image.dispose();
+
+    if (byteData == null) {
+      throw Exception('Failed to render labeled field to image');
+    }
+
+    return _rgbaToBitmap(byteData, pxW, pxH);
+  }
+
   /// Generate a thin dashed separator line as a pure bitmap.
   ///
   /// No raw text bytes are sent, avoiding CJK firmware misinterpretation.
