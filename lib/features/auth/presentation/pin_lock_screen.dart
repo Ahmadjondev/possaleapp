@@ -95,6 +95,10 @@ class _PinLockScreenState extends State<PinLockScreen>
   }
 
   void _onDigit(String digit) {
+    // Block input while verifying
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthPinRequired && authState.isVerifying) return;
+
     if (_pin.length >= _pinLength) return;
     setState(() => _pin += digit);
     if (_pin.length == _pinLength) {
@@ -123,7 +127,9 @@ class _PinLockScreenState extends State<PinLockScreen>
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthPinRequired && state.errorMessage != null) {
+        if (state is AuthPinRequired &&
+            state.errorMessage != null &&
+            !state.isVerifying) {
           // Wrong PIN — shake and clear
           _shakeController.forward(from: 0);
           setState(() => _pin = '');
@@ -138,74 +144,87 @@ class _PinLockScreenState extends State<PinLockScreen>
             focusNode: _focusNode,
             autofocus: true,
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // User indicator
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: context.colors.surfaceLight,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: context.colors.border),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.user.displayName.isNotEmpty
-                            ? widget.user.displayName[0].toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          color: context.colors.textPrimary,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
+              child: BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  final isVerifying =
+                      state is AuthPinRequired && state.isVerifying;
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // User indicator
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: context.colors.surfaceLight,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: context.colors.border),
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.user.displayName.isNotEmpty
+                                ? widget.user.displayName[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              color: context.colors.textPrimary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.user.displayName,
-                    style: TextStyle(
-                      color: context.colors.textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Enter PIN to unlock',
-                    style: TextStyle(
-                      color: context.colors.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // PIN dots with shake animation
-                  AnimatedBuilder(
-                    animation: _shakeAnimation,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(
-                          _shakeController.status == AnimationStatus.forward
-                              ? _shakeAnimation.value *
-                                    (_shakeController.value < 0.5 ? 1 : -1)
-                              : 0,
-                          0,
+                      const SizedBox(height: 16),
+                      Text(
+                        widget.user.displayName,
+                        style: TextStyle(
+                          color: context.colors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
                         ),
-                        child: child,
-                      );
-                    },
-                    child: _buildPinDots(),
-                  ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'ПИН кодни киритинг',
+                        style: TextStyle(
+                          color: context.colors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-                  // Error message
-                  BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
+                      // PIN dots with shake animation + loading overlay
+                      AnimatedBuilder(
+                        animation: _shakeAnimation,
+                        builder: (context, child) {
+                          return Transform.translate(
+                            offset: Offset(
+                              _shakeController.status == AnimationStatus.forward
+                                  ? _shakeAnimation.value *
+                                        (_shakeController.value < 0.5 ? 1 : -1)
+                                  : 0,
+                              0,
+                            ),
+                            child: child,
+                          );
+                        },
+                        child: isVerifying
+                            ? const SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: AppColors.accent,
+                                ),
+                              )
+                            : _buildPinDots(),
+                      ),
+
+                      // Error message
                       if (state is AuthPinRequired &&
-                          state.errorMessage != null) {
-                        return Padding(
+                          state.errorMessage != null &&
+                          !state.isVerifying)
+                        Padding(
                           padding: const EdgeInsets.only(top: 12),
                           child: Text(
                             state.errorMessage!,
@@ -214,31 +233,37 @@ class _PinLockScreenState extends State<PinLockScreen>
                               fontSize: 13,
                             ),
                           ),
-                        );
-                      }
-                      return const SizedBox(height: 12);
-                    },
-                  ),
+                        )
+                      else
+                        const SizedBox(height: 12),
 
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // Numpad
-                  _buildNumpad(),
-
-                  const SizedBox(height: 32),
-
-                  // Switch user link
-                  TextButton(
-                    onPressed: _onSwitchUser,
-                    child: Text(
-                      'Switch User',
-                      style: TextStyle(
-                        color: context.colors.textSecondary,
-                        fontSize: 13,
+                      // Numpad
+                      IgnorePointer(
+                        ignoring: isVerifying,
+                        child: Opacity(
+                          opacity: isVerifying ? 0.4 : 1.0,
+                          child: _buildNumpad(),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+
+                      const SizedBox(height: 32),
+
+                      // Switch user link
+                      TextButton(
+                        onPressed: isVerifying ? null : _onSwitchUser,
+                        child: Text(
+                          'Фойдаланувчини алмаштириш',
+                          style: TextStyle(
+                            color: context.colors.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),

@@ -33,15 +33,17 @@ class AuthPinRequired extends AuthState {
   final UserModel user;
   final String? errorMessage;
   final int failedAttempts;
+  final bool isVerifying;
 
   const AuthPinRequired({
     required this.user,
     this.errorMessage,
     this.failedAttempts = 0,
+    this.isVerifying = false,
   });
 
   @override
-  List<Object?> get props => [user, errorMessage, failedAttempts];
+  List<Object?> get props => [user, errorMessage, failedAttempts, isVerifying];
 }
 
 /// Fully authenticated and PIN verified — show POS.

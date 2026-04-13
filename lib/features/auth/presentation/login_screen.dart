@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'POS Terminal',
+                        'ПОС Терминал',
                         style: TextStyle(
                           color: context.colors.textPrimary,
                           fontSize: 24,
@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Sign in to continue',
+                        'Давом этиш учун тизимга киринг',
                         style: TextStyle(
                           color: context.colors.textSecondary,
                           fontSize: 14,
@@ -121,14 +121,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _usernameController,
                         decoration: const InputDecoration(
-                          labelText: 'Username',
+                          labelText: 'Фойдаланувчи номи',
                           prefixIcon: Icon(Icons.person_outline),
                         ),
                         autofocus: true,
                         textInputAction: TextInputAction.next,
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Username is required';
+                            return 'Фойдаланувчи номи киритилиши шарт';
                           }
                           return null;
                         },
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _passwordController,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: 'Парол',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -157,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onFieldSubmitted: (_) => _submit(),
                         validator: (v) {
                           if (v == null || v.isEmpty) {
-                            return 'Password is required';
+                            return 'Парол киритилиши шарт';
                           }
                           return null;
                         },
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 )
                               : const Text(
-                                  'Sign In',
+                                  'Кириш',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () => context.go('/setup'),
                         icon: const Icon(Icons.settings_outlined, size: 14),
                         label: Text(
-                          'Change server settings',
+                          'Сервер созламаларини ўзгартириш',
                           style: TextStyle(
                             color: context.colors.textSecondary,
                             fontSize: 12,

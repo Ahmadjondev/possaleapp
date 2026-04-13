@@ -362,10 +362,7 @@ class _PosScreenBodyState extends State<_PosScreenBody> {
           const SizedBox(width: 4),
           Text(
             widget.user.displayName,
-            style: TextStyle(
-              color: context.colors.textSecondary,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: context.colors.textSecondary, fontSize: 12),
           ),
           const SizedBox(width: 8),
           IconButton(
@@ -376,7 +373,17 @@ class _PosScreenBodyState extends State<_PosScreenBody> {
             ),
             iconSize: 20,
             tooltip: 'Созламалар',
-            onPressed: () => context.push('/settings'),
+            onPressed: () async {
+              final oldWarehouseId = getIt<AuthLocalStorage>().getWarehouseId();
+              await context.push('/settings');
+              if (!context.mounted) return;
+              final newWarehouseId = getIt<AuthLocalStorage>().getWarehouseId();
+              if (newWarehouseId != null && newWarehouseId != oldWarehouseId) {
+                getIt<ProductBloc>().add(
+                  ProductWarehouseChanged(warehouseId: newWarehouseId),
+                );
+              }
+            },
           ),
           IconButton(
             icon: Icon(

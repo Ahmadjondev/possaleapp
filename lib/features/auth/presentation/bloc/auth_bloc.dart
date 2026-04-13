@@ -69,9 +69,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthPinRequired(user: user));
       } else {
         emit(
-          const AuthUnauthenticated(
-            errorMessage: 'Could not connect to server',
-          ),
+          const AuthUnauthenticated(errorMessage: 'Серверга уланиб бўлмади'),
         );
       }
     }
@@ -88,7 +86,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (serverUrl.isEmpty) {
       emit(
         const AuthUnauthenticated(
-          errorMessage: 'Server URL not configured. Run setup first.',
+          errorMessage: 'Сервер манзили созланмаган. Аввал созлашни ўтказинг.',
         ),
       );
       return;
@@ -124,9 +122,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthUnauthenticated(errorMessage: e.message));
     } catch (e) {
       log('Login error: $e');
-      emit(
-        const AuthUnauthenticated(errorMessage: 'Could not connect to server'),
-      );
+      emit(const AuthUnauthenticated(errorMessage: 'Серверга уланиб бўлмади'));
     }
   }
 
@@ -136,6 +132,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     final currentState = state;
     if (currentState is! AuthPinRequired) return;
+
+    // Show loading indicator
+    emit(
+      AuthPinRequired(
+        user: currentState.user,
+        isVerifying: true,
+        failedAttempts: currentState.failedAttempts,
+      ),
+    );
 
     try {
       final valid = await _authRepository.verifyPin(event.pin);
@@ -149,15 +154,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await _authStorage.clearAll();
           emit(
             const AuthUnauthenticated(
-              errorMessage:
-                  'Too many failed PIN attempts. Please log in again.',
+              errorMessage: 'Жуда кўп нотўғри уринишлар. Қайта киринг.',
             ),
           );
         } else {
           emit(
             AuthPinRequired(
               user: currentState.user,
-              errorMessage: 'Incorrect PIN',
+              errorMessage: 'Нотўғри ПИН',
               failedAttempts: attempts,
             ),
           );
@@ -175,7 +179,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(
         AuthPinRequired(
           user: currentState.user,
-          errorMessage: 'Connection error',
+          errorMessage: 'Алоқа хатоси',
           failedAttempts: currentState.failedAttempts,
         ),
       );

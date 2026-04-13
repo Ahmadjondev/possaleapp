@@ -134,14 +134,14 @@ class _SetupScreenState extends State<SetupScreen> {
       setState(() {
         _serverOk = ok;
         _serverStatus = ok
-            ? 'Connected (HTTP ${response.statusCode})'
-            : 'Server error (${response.statusCode})';
+            ? 'Уланди (HTTP ${response.statusCode})'
+            : 'Сервер хатоси (${response.statusCode})';
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _serverOk = false;
-        _serverStatus = 'Failed: ${e.toString().split('\n').first}';
+        _serverStatus = 'Хато: ${e.toString().split('\n').first}';
       });
     } finally {
       if (mounted) setState(() => _serverTesting = false);
@@ -172,8 +172,8 @@ class _SetupScreenState extends State<SetupScreen> {
       setState(() {
         _receiptTesting = false;
         _receiptStatus = result.success
-            ? 'Test page sent!'
-            : 'Error: ${result.error}';
+            ? 'Тест саҳифаси юборилди!'
+            : 'Хато: ${result.error}';
       });
     }
   }
@@ -189,8 +189,8 @@ class _SetupScreenState extends State<SetupScreen> {
       setState(() {
         _labelTesting = false;
         _labelStatus = result.success
-            ? 'Test label sent!'
-            : 'Error: ${result.error}';
+            ? 'Тест ярлиғи юборилди!'
+            : 'Хато: ${result.error}';
       });
     }
   }
@@ -237,7 +237,7 @@ class _SetupScreenState extends State<SetupScreen> {
           Icon(Icons.settings_outlined, color: AppColors.accent, size: 24),
           SizedBox(width: 12),
           Text(
-            'POS Terminal Setup',
+            'ПОС Терминал Созлаш',
             style: TextStyle(
               color: context.colors.textPrimary,
               fontSize: 18,
@@ -250,7 +250,7 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildStepper() {
-    const labels = ['Server', 'Receipt Printer', 'Label Printer', 'Finish'];
+    const labels = ['Сервер', 'Чек принтери', 'Ярлиқ принтери', 'Тугатиш'];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       color: context.colors.surface,
@@ -343,20 +343,20 @@ class _SetupScreenState extends State<SetupScreen> {
             OutlinedButton.icon(
               onPressed: _prev,
               icon: const Icon(Icons.arrow_back, size: 18),
-              label: const Text('Back'),
+              label: const Text('Орқага'),
             ),
           const Spacer(),
           if (_step < _totalSteps - 1)
             ElevatedButton.icon(
               onPressed: _canProceed() ? _next : null,
               icon: const Icon(Icons.arrow_forward, size: 18),
-              label: Text(_step == 2 ? 'Next' : 'Continue'),
+              label: Text(_step == 2 ? 'Кейинги' : 'Давом этиш'),
             ),
           if (_step == _totalSteps - 1)
             ElevatedButton.icon(
               onPressed: _finish,
               icon: const Icon(Icons.check, size: 18),
-              label: const Text('Complete Setup'),
+              label: const Text('Созлашни тугатиш'),
             ),
         ],
       ),
@@ -379,7 +379,7 @@ class _SetupScreenState extends State<SetupScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Server Connection',
+          'Сервер уланиши',
           style: TextStyle(
             color: context.colors.textPrimary,
             fontSize: 20,
@@ -388,7 +388,7 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Enter the backend server URL for this POS terminal.',
+          'ПОС терминал учун сервер манзилини киритинг.',
           style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
         ),
         const SizedBox(height: 24),
@@ -396,7 +396,7 @@ class _SetupScreenState extends State<SetupScreen> {
         TextFormField(
           controller: _serverUrlController,
           decoration: InputDecoration(
-            labelText: 'Server URL',
+            labelText: 'Сервер манзили',
             hintText: 'https://demo.digitex.uz',
             prefixIcon: const Icon(Icons.dns_outlined),
             suffixIcon: _serverTesting
@@ -410,7 +410,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   )
                 : IconButton(
                     icon: const Icon(Icons.refresh),
-                    tooltip: 'Test connection',
+                    tooltip: 'Уланишни текшириш',
                     onPressed: _testServer,
                   ),
           ),
@@ -434,7 +434,9 @@ class _SetupScreenState extends State<SetupScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.wifi_tethering, size: 18),
-            label: Text(_serverTesting ? 'Testing...' : 'Test Connection'),
+            label: Text(
+              _serverTesting ? 'Текширилмоқда...' : 'Уланишни текшириш',
+            ),
           ),
         ),
 
@@ -453,7 +455,7 @@ class _SetupScreenState extends State<SetupScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Receipt Printer',
+          'Чек принтери',
           style: TextStyle(
             color: context.colors.textPrimary,
             fontSize: 20,
@@ -462,18 +464,18 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Configure the thermal receipt printer. You can skip this and set it up later.',
+          'Чек принтерини созланг. Кейинроқ ҳам созлаш мумкин.',
           style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
         ),
         const SizedBox(height: 24),
 
         // Connection type
-        _sectionLabel('Connection Type'),
+        _sectionLabel('Уланиш тури'),
         const SizedBox(height: 8),
         _segmented<ConnectionType>(
           value: _receiptConfig.connectionType,
           items: const {
-            ConnectionType.network: 'Network (LAN)',
+            ConnectionType.network: 'Тармоқ (LAN)',
             ConnectionType.usb: 'USB',
           },
           onChanged: (v) => setState(
@@ -491,7 +493,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 child: TextFormField(
                   controller: _receiptIpController,
                   decoration: const InputDecoration(
-                    labelText: 'IP Address',
+                    labelText: 'IP манзил',
                     hintText: '192.168.1.100',
                     prefixIcon: Icon(Icons.lan_outlined),
                   ),
@@ -503,7 +505,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 flex: 1,
                 child: TextFormField(
                   controller: _receiptPortController,
-                  decoration: const InputDecoration(labelText: 'Port'),
+                  decoration: const InputDecoration(labelText: 'Порт'),
                   keyboardType: TextInputType.number,
                 ),
               ),
@@ -514,13 +516,13 @@ class _SetupScreenState extends State<SetupScreen> {
         // USB fields
         if (_receiptConfig.connectionType == ConnectionType.usb) ...[
           if (Platform.isMacOS || Platform.isLinux) ...[
-            _sectionLabel('USB Mode'),
+            _sectionLabel('USB режими'),
             const SizedBox(height: 8),
             _segmented<UsbMode>(
               value: _receiptConfig.usbMode,
               items: const {
-                UsbMode.cups: 'CUPS (Recommended)',
-                UsbMode.file: 'Direct Device File',
+                UsbMode.cups: 'CUPS (Тавсия этилади)',
+                UsbMode.file: 'Тўғридан қурилма файли',
               },
               onChanged: (v) => setState(
                 () => _receiptConfig = _receiptConfig.copyWith(usbMode: v),
@@ -541,13 +543,13 @@ class _SetupScreenState extends State<SetupScreen> {
         const SizedBox(height: 16),
 
         // Paper width
-        _sectionLabel('Paper Width'),
+        _sectionLabel('Қоғоз кенглиги'),
         const SizedBox(height: 8),
         _segmented<PaperWidth>(
           value: _receiptConfig.paperWidth,
           items: const {
-            PaperWidth.mm80: '80mm (Standard)',
-            PaperWidth.mm57: '57mm (Narrow)',
+            PaperWidth.mm80: '80mm (Стандарт)',
+            PaperWidth.mm57: '57mm (Тор)',
           },
           onChanged: (v) => setState(
             () => _receiptConfig = _receiptConfig.copyWith(paperWidth: v),
@@ -568,13 +570,15 @@ class _SetupScreenState extends State<SetupScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.print_outlined, size: 18),
-            label: Text(_receiptTesting ? 'Printing...' : 'Print Test Receipt'),
+            label: Text(
+              _receiptTesting ? 'Чоп этилмоқда...' : 'Тест чек чоп этиш',
+            ),
           ),
         ),
 
         if (_receiptStatus != null) ...[
           const SizedBox(height: 12),
-          _statusChip(_receiptStatus!, _receiptStatus!.contains('sent')),
+          _statusChip(_receiptStatus!, _receiptStatus!.contains('юборилди')),
         ],
       ],
     );
@@ -587,7 +591,7 @@ class _SetupScreenState extends State<SetupScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Label / Barcode Printer',
+          'Ярлиқ / Штрих-код принтери',
           style: TextStyle(
             color: context.colors.textPrimary,
             fontSize: 20,
@@ -596,14 +600,14 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Optional — configure if you use a barcode label printer (e.g. Xprinter XP-365B).',
+          'Ихтиярий — штрих-код ярлиқ принтерини созланг (масалан Xprinter XP-365B).',
           style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
         ),
         const SizedBox(height: 16),
 
         SwitchListTile(
           title: Text(
-            'Enable label printer',
+            'Ярлиқ принтерини ёқиш',
             style: TextStyle(color: context.colors.textPrimary),
           ),
           value: _enableLabel,
@@ -615,12 +619,12 @@ class _SetupScreenState extends State<SetupScreen> {
         if (_enableLabel) ...[
           const SizedBox(height: 16),
 
-          _sectionLabel('Connection Type'),
+          _sectionLabel('Уланиш тури'),
           const SizedBox(height: 8),
           _segmented<ConnectionType>(
             value: _labelConfig.connectionType,
             items: const {
-              ConnectionType.network: 'Network (LAN)',
+              ConnectionType.network: 'Тармоқ (LAN)',
               ConnectionType.usb: 'USB',
             },
             onChanged: (v) => setState(
@@ -637,7 +641,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   child: TextFormField(
                     controller: _labelIpController,
                     decoration: const InputDecoration(
-                      labelText: 'IP Address',
+                      labelText: 'IP манзил',
                       hintText: '192.168.1.101',
                       prefixIcon: Icon(Icons.lan_outlined),
                     ),
@@ -649,7 +653,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   flex: 1,
                   child: TextFormField(
                     controller: _labelPortController,
-                    decoration: const InputDecoration(labelText: 'Port'),
+                    decoration: const InputDecoration(labelText: 'Порт'),
                     keyboardType: TextInputType.number,
                   ),
                 ),
@@ -659,13 +663,13 @@ class _SetupScreenState extends State<SetupScreen> {
 
           if (_labelConfig.connectionType == ConnectionType.usb) ...[
             if (Platform.isMacOS || Platform.isLinux) ...[
-              _sectionLabel('USB Mode'),
+              _sectionLabel('USB режими'),
               const SizedBox(height: 8),
               _segmented<UsbMode>(
                 value: _labelConfig.usbMode,
                 items: const {
-                  UsbMode.cups: 'CUPS (Recommended)',
-                  UsbMode.file: 'Direct Device File',
+                  UsbMode.cups: 'CUPS (Тавсия этилади)',
+                  UsbMode.file: 'Тўғридан қурилма файли',
                 },
                 onChanged: (v) => setState(
                   () => _labelConfig = _labelConfig.copyWith(usbMode: v),
@@ -686,13 +690,13 @@ class _SetupScreenState extends State<SetupScreen> {
           const SizedBox(height: 24),
 
           // Label size
-          _sectionLabel('Label Size (mm)'),
+          _sectionLabel('Ярлиқ өлчами (mm)'),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: _buildSmallField(
-                  label: 'Width',
+                  label: 'Кенглик',
                   value: '${_labelConfig.labelWidth}',
                   onChanged: (v) => setState(
                     () => _labelConfig = _labelConfig.copyWith(
@@ -704,12 +708,15 @@ class _SetupScreenState extends State<SetupScreen> {
               const SizedBox(width: 12),
               Text(
                 '×',
-                style: TextStyle(color: context.colors.textSecondary, fontSize: 18),
+                style: TextStyle(
+                  color: context.colors.textSecondary,
+                  fontSize: 18,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildSmallField(
-                  label: 'Height',
+                  label: 'Баландлик',
                   value: '${_labelConfig.labelHeight}',
                   onChanged: (v) => setState(
                     () => _labelConfig = _labelConfig.copyWith(
@@ -735,13 +742,15 @@ class _SetupScreenState extends State<SetupScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.label_outlined, size: 18),
-              label: Text(_labelTesting ? 'Printing...' : 'Print Test Label'),
+              label: Text(
+                _labelTesting ? 'Чоп этилмоқда...' : 'Тест ярлиқ чоп этиш',
+              ),
             ),
           ),
 
           if (_labelStatus != null) ...[
             const SizedBox(height: 12),
-            _statusChip(_labelStatus!, _labelStatus!.contains('sent')),
+            _statusChip(_labelStatus!, _labelStatus!.contains('юборилди')),
           ],
         ],
       ],
@@ -761,7 +770,7 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Setup Complete',
+          'Созлаш тугатилди',
           style: TextStyle(
             color: context.colors.textPrimary,
             fontSize: 20,
@@ -770,31 +779,31 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Review your configuration below. You can always change these settings later.',
+          'Созламаларни текширинг. Кейинроқ ҳам ўзгартириш мумкин.',
           style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
         ),
         const SizedBox(height: 24),
 
         _summaryTile(
           Icons.dns_outlined,
-          'Server',
+          'Сервер',
           _serverUrlController.text.trim(),
         ),
         const SizedBox(height: 12),
         _summaryTile(
           Icons.receipt_long_outlined,
-          'Receipt Printer',
+          'Чек принтери',
           _receiptConfig.isConfigured
               ? _receiptConfig.connectionLabel
-              : 'Not configured (skip)',
+              : 'Созланмаган (ўтказилди)',
         ),
         const SizedBox(height: 12),
         _summaryTile(
           Icons.label_outlined,
-          'Label Printer',
+          'Ярлиқ принтери',
           _enableLabel && _labelConfig.isConfigured
-              ? 'Enabled — ${_labelConfig.connectionType == ConnectionType.network ? "LAN ${_labelConfig.ip}" : "USB"}'
-              : 'Disabled',
+              ? 'Ёқилган — ${_labelConfig.connectionType == ConnectionType.network ? "LAN ${_labelConfig.ip}" : "USB"}'
+              : 'Учирилган',
         ),
       ],
     );
@@ -896,7 +905,7 @@ class _SetupScreenState extends State<SetupScreen> {
           children: [
             Expanded(
               child: _sectionLabel(
-                Platform.isWindows ? 'Printer Name' : 'CUPS Printer',
+                Platform.isWindows ? 'Принтер номи' : 'CUPS принтер',
               ),
             ),
             TextButton.icon(
@@ -908,7 +917,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.search, size: 16),
-              label: Text(_loadingPrinters ? 'Searching...' : 'Discover'),
+              label: Text(_loadingPrinters ? 'Қидирилмоқда...' : 'Топиш'),
             ),
           ],
         ),
@@ -918,7 +927,7 @@ class _SetupScreenState extends State<SetupScreen> {
             initialValue: selectedName,
             decoration: InputDecoration(
               hintText: Platform.isWindows
-                  ? 'Printer queue name'
+                  ? 'Принтер навбати номи'
                   : 'e.g. EPSON_TM_T20III',
               prefixIcon: const Icon(Icons.print_outlined),
             ),

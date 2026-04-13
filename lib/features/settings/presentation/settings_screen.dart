@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, exit;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -978,25 +978,170 @@ class _PrinterSection extends StatelessWidget {
 //  SYSTEM SECTION — server URL, about
 // ═══════════════════════════════════════════════════════════════════
 
-class _SystemSection extends StatelessWidget {
+class _SystemSection extends StatefulWidget {
   const _SystemSection();
+
+  @override
+  State<_SystemSection> createState() => _SystemSectionState();
+}
+
+class _SystemSectionState extends State<_SystemSection> {
+  late TextEditingController _urlCtrl;
+  String _savedUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _urlCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _urlCtrl.dispose();
+    super.dispose();
+  }
+
+  bool get _hasChanges => _urlCtrl.text.trim() != _savedUrl;
+
+  Future<void> _onSave() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
+          'Огоҳлантириш',
+          style: TextStyle(color: context.colors.textPrimary, fontSize: 16),
+        ),
+        content: Text(
+          'Сервер манзилини ўзгартирсангиз, дастур тўлиқ қайта юкланади. Давом этасизми?',
+          style: TextStyle(color: context.colors.textSecondary, fontSize: 14),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.colors.textSecondary,
+              side: BorderSide(color: context.colors.border),
+            ),
+            child: const Text('Йўқ'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Ҳа'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      context.read<SettingsBloc>().add(ServerUrlUpdated(_urlCtrl.text.trim()));
+      // Give time for the save to complete, then restart the app
+      await Future.delayed(const Duration(milliseconds: 300));
+      exit(0);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsBloc, SettingsState>(
       builder: (context, state) {
+        // Sync controller with bloc state on first load
+        if (_savedUrl != state.serverUrl) {
+          _savedUrl = state.serverUrl;
+          if (_urlCtrl.text != state.serverUrl) {
+            _urlCtrl.text = state.serverUrl;
+          }
+        }
+
         return ListView(
           padding: const EdgeInsets.all(24),
           children: [
             const _SectionHeader(title: 'Тизим созламалари'),
             const SizedBox(height: 16),
-            _TextFieldTile(
-              icon: Icons.dns_outlined,
-              title: 'Сервер манзили (POS URL)',
-              value: state.serverUrl,
-              hint: 'https://example.com',
-              onChanged: (v) =>
-                  context.read<SettingsBloc>().add(ServerUrlUpdated(v)),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: context.colors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: context.colors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.dns_outlined,
+                        color: AppColors.accent,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Сервер манзили (POS URL)',
+                        style: TextStyle(
+                          color: context.colors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _urlCtrl,
+                    style: TextStyle(
+                      color: context.colors.textPrimary,
+                      fontSize: 13,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'https://example.com',
+                      hintStyle: TextStyle(
+                        color: context.colors.textMuted,
+                        fontSize: 13,
+                      ),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      filled: true,
+                      fillColor: context.colors.surfaceLight,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide(color: context.colors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide(color: context.colors.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: AppColors.accent),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  if (_hasChanges) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _onSave,
+                        icon: const Icon(Icons.save, size: 18),
+                        label: const Text('Сақлаш'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             _SettingsTile(
